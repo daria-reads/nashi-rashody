@@ -1,0 +1,33 @@
+rules_version = '2';
+
+// Доступ только у двух Google-аккаунтов. Впишите свои адреса вместо примеров.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isFamily() {
+      return request.auth != null
+        && request.auth.token.email_verified == true
+        && request.auth.token.email in [
+          'daria@gmail.com',
+          'muzh@gmail.com'
+        ];
+    }
+
+    match /expenses/{id} {
+      allow read, delete: if isFamily();
+      allow create, update: if isFamily()
+        && request.resource.data.amount is number
+        && request.resource.data.amount > 0
+        && request.resource.data.date is string
+        && request.resource.data.note is string
+        && request.resource.data.note.size() <= 120;
+    }
+
+    match /settings/main {
+      allow read, write: if isFamily();
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

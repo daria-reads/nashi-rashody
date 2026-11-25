@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Наши расходы</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Onest:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* VOICE: тёплая, спокойная домашняя бухгалтерия для двоих, без канцелярщины
+   IDEA: семейная расходная книга — месяц как разворот, где сразу видно итог и кто кому должен
+   PICTURE: крупная сводка месяца: сумма, бюджет, полоса «кто сколько заплатил», категории
+   COLOUR and TYPE: гранатовый #9e1238 поле, светло-розовая поддержка, шафран #f2a516 акцент; Unbounded + Onest
+   LAYOUT: шапка-поле со сводкой и формой, ниже список по дням; на телефоне всё в одну колонку */
+:root{color-scheme:light dark;--bg:light-dark(#fff,#141012);--ink:light-dark(#1d1416,#f4ecee);--mute:light-dark(#6f5d62,#b8a6ab);--line:light-dark(#eadfe2,#2e2427);--card:light-dark(#fff,#1d1719);--pom:light-dark(#9e1238,#5c0b22);--pom2:light-dark(#fbe9ee,#2a1a1f);--saf:#f2a516;--onpom:#fff}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 Onest,system-ui,sans-serif;overflow-x:clip}
+h1,h2,.big{font-family:Unbounded,Onest,sans-serif;line-height:1.05;text-wrap:balance;margin:0}
+.band{padding:clamp(20px,3.5vw,48px) max(5vw,16px)}
+.wrap{max-width:1240px;margin:0 auto}
+.top{background:var(--pom);color:var(--onpom)}
+.bar{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;margin-bottom:24px}
+h1{font-size:clamp(24px,3.4vw,34px);font-weight:700}
+.mnav{display:flex;align-items:center;gap:6px}
+.mnav b{font-weight:600;min-width:9.5em;text-align:center;text-transform:capitalize}
+button,input,select{font:inherit;color:inherit}
+.ib{width:44px;height:44px;border-radius:50%;border:1px solid rgba(255,255,255,.35);background:transparent;color:var(--onpom);cursor:pointer;font-size:20px}
+.ib:hover{background:rgba(255,255,255,.12)}
+.grid{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:clamp(16px,2.5vw,32px);align-items:start}
+.sum{background:rgba(255,255,255,.08);border-radius:20px;padding:clamp(18px,2.4vw,28px)}
+.lbl{font-size:14px;opacity:.8}
+.big{font-size:clamp(36px,6vw,52px);font-weight:700;margin:4px 0 12px;white-space:nowrap}
+.meter{height:12px;border-radius:6px;background:rgba(255,255,255,.18);overflow:hidden}
+.meter i{display:block;height:100%;background:var(--saf);border-radius:6px;transition:width .4s}
+.meter.over i{background:#ff6b6b}
+.split{display:flex;height:40px;border-radius:12px;overflow:hidden;margin:18px 0 8px;background:rgba(255,255,255,.15)}
+.split div{display:flex;align-items:center;padding:0 12px;font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;transition:flex-basis .4s}
+.split .a{background:var(--saf);color:#2a1a00}.split .b{background:#fff;color:#5c0b22}
+.legend{display:flex;justify-content:space-between;gap:8px;font-size:14px;flex-wrap:wrap}
+.cats{margin-top:18px;display:grid;gap:8px}
+.cat{display:grid;grid-template-columns:10.5em minmax(0,1fr) auto;gap:10px;align-items:center;font-size:14px}
+.cat .t{height:10px;border-radius:5px;background:rgba(255,255,255,.14);overflow:hidden}.cat .t i{display:block;height:100%;border-radius:5px}
+.cat span:last-child{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+form.add{background:var(--card);color:var(--ink);border-radius:20px;padding:clamp(18px,2.4vw,26px);display:grid;gap:14px;box-shadow:0 18px 40px rgba(40,0,10,.25)}
+form.add h2{font-size:20px;font-weight:500}
+.amt{display:flex;align-items:center;gap:8px;border-bottom:2px solid var(--pom);padding-bottom:4px}
+.amt input{border:0;background:transparent;font:700 34px Unbounded,sans-serif;width:100%;outline:0;padding:4px 0}
+.amt span{font-size:24px;color:var(--mute)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{min-height:38px;padding:6px 12px;border-radius:19px;border:1px solid var(--line);background:transparent;cursor:pointer;font-size:14px;display:inline-flex;align-items:center;gap:6px}
+.chip .d{width:9px;height:9px;border-radius:50%}
+.chip[aria-pressed=true]{background:var(--pom);border-color:var(--pom);color:#fff}
+.seg{display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.seg button{min-height:44px;border:0;background:transparent;cursor:pointer;font-size:15px}
+.seg button[aria-pressed=true]{background:var(--pom2);color:var(--pom);font-weight:600}
+:root[data-theme=dark] .seg button[aria-pressed=true]{color:#ffb3c6}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]) .seg button[aria-pressed=true]{color:#ffb3c6}}
+.row2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.4fr);gap:10px}
+.fld{display:grid;gap:4px;font-size:13px;color:var(--mute)}
+.fld input,.fld select,.search{min-height:44px;font-size:16px;border:1px solid var(--line);border-radius:10px;padding:8px 12px;background:var(--bg);color:var(--ink);width:100%}
+.btn{min-height:46px;border-radius:12px;border:0;background:var(--pom);color:#fff;font-weight:600;cursor:pointer;padding:0 18px}
+.btn.ghost{background:transparent;color:inherit;border:1px solid currentColor}
+.btn.light{background:#fff;color:#5c0b22}
+.btn:disabled{opacity:.5;cursor:default}
+:focus-visible{outline:3px solid var(--saf);outline-offset:2px}
+.tools{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:18px}
+.tools .search{flex:1 1 220px;width:auto}
+.tools .seg{flex:0 1 360px;grid-template-columns:repeat(3,1fr)}
+.day{margin-bottom:18px}
+.day h3{font-size:14px;font-weight:600;color:var(--mute);margin:0 0 6px;display:flex;justify-content:space-between;text-transform:capitalize}
+.it{display:grid;grid-template-columns:12px minmax(0,1fr) auto auto;gap:12px;align-items:center;padding:12px 4px;border-top:1px solid var(--line)}
+.it .d{width:12px;height:12px;border-radius:50%}
+.it .n{font-weight:500}.it .s{font-size:13px;color:var(--mute)}
+.it .m{font-weight:600;white-space:nowrap;text-align:right;font-variant-numeric:tabular-nums}
+.acts{display:flex;gap:2px}
+.acts button{width:40px;height:40px;border:0;background:transparent;border-radius:10px;cursor:pointer;color:var(--mute);font-size:16px}
+.acts button:hover{background:var(--pom2);color:var(--ink)}
+.empty{padding:40px 0;text-align:center;color:var(--mute)}
+.note{font-size:13px;color:var(--mute)}
+.toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 10px 10px 18px;border-radius:14px;display:flex;gap:14px;align-items:center;box-shadow:0 10px 30px rgba(0,0,0,.25);z-index:20;max-width:calc(100vw - 32px)}
+.toast button{background:transparent;border:0;color:var(--saf);font-weight:600;cursor:pointer;min-height:36px;padding:0 10px}
+.ov{position:fixed;inset:0;background:rgba(20,5,10,.55);display:grid;place-items:center;padding:16px;z-index:30}
+.dlg{background:var(--card);color:var(--ink);border-radius:20px;padding:24px;width:min(440px,100%);display:grid;gap:14px}
+.dlg h2{font-size:20px;font-weight:500}
+.foot{display:flex;flex-wrap:wrap;gap:10px;justify-content:space-between;align-items:center;border-top:1px solid var(--line);padding-top:18px;margin-top:8px}
+[hidden]{display:none!important}
+.gate{position:fixed;inset:0;z-index:40;background:var(--pom);color:#fff;display:grid;place-items:center;padding:24px;text-align:center}
+.gate .box{max-width:420px;display:grid;gap:18px;justify-items:center}
+.gate h1{font-size:clamp(28px,6vw,40px)}
+.gate p{margin:0;opacity:.85}
+.gbtn{min-height:50px;padding:0 22px;border-radius:25px;border:0;background:#fff;color:#1d1416;font-weight:600;cursor:pointer;display:inline-flex;gap:10px;align-items:center;font-size:16px}
+.who{font-size:13px;opacity:.85;display:flex;gap:8px;align-items:center}
+.who button{background:transparent;border:1px solid rgba(255,255,255,.4);color:#fff;border-radius:16px;min-height:32px;padding:0 12px;cursor:pointer;font-size:13px}
+@media(max-width:860px){.grid{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:600px){.cat{grid-template-columns:8em minmax(0,1fr) auto}.it{grid-template-columns:10px minmax(0,1fr) auto;row-gap:2px}.it .acts{grid-column:2/4;justify-content:flex-end}.mnav b{min-width:7.5em}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="gate" id="gate"><div class="box">
+  <h1>Наши расходы</h1>
+  <p id="gMsg">Войдите, чтобы видеть и добавлять общие траты</p>
+  <button class="gbtn" id="gIn" type="button"><svg width="20" height="20" viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="m6.3 14.7 6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z"/></svg>Войти через Google</button>
+  <button class="gbtn" id="gOut" type="button" hidden>Войти другим аккаунтом</button>
+</div></div>
+<section class="top band"><div class="wrap">
+  <div class="bar">
+    <div><h1 id="ttl">Наши расходы</h1><div class="who" style="margin-top:8px"><span id="uName"></span><button id="out" type="button">Выйти</button></div></div>
+    <div class="mnav">
+      <button class="ib" id="prev" aria-label="Предыдущий месяц">‹</button>
+      <b id="mname"></b>
+      <button class="ib" id="next" aria-label="Следующий месяц">›</button>
+      <button class="ib" id="gear" aria-label="Настройки" title="Настройки">⚙</button>
+    </div>
+  </div>
+  <div class="grid">
+    <div class="sum">
+      <div class="lbl">Потрачено за месяц</div>
+      <div class="big" id="total">0</div>
+      <div id="budgetBox"><div class="meter" id="meter"><i id="meterI"></i></div>
+        <div class="legend" style="margin-top:6px"><span id="budL"></span><span id="budR"></span></div></div>
+      <div class="split" id="split"><div class="a" id="spA"></div><div class="b" id="spB"></div></div>
+      <div class="legend"><span id="lgA"></span><span id="lgB"></span></div>
+      <div class="cats" id="cats"></div>
+    </div>
+    <form class="add" id="form" autocomplete="off">
+      <h2 id="fTitle">Новая трата</h2>
+      <label class="amt"><input id="fAmt" inputmode="decimal" placeholder="0" aria-label="Сумма" required><span id="fCur">₼</span></label>
+      <div class="chips" id="fCats" role="group" aria-label="Категория"></div>
+      <div class="seg" id="fWho" role="group" aria-label="Кто платил"></div>
+      <div class="row2">
+        <label class="fld">Дата<input type="date" id="fDate" required></label>
+        <label class="fld">Комментарий<input id="fNote" maxlength="120" placeholder="Например, рынок"></label>
+      </div>
+      <div style="display:flex;gap:10px"><button class="btn" style="flex:1" id="fSave">Добавить</button><button type="button" class="btn ghost" id="fCancel" hidden>Отмена</button></div>
+      <div class="note" id="status">Подключаюсь к общей базе…</div>
+    </form>
+  </div>
+</div></section>
+
+<section class="band"><div class="wrap">
+  <div class="tools">
+    <input class="search" id="q" type="search" placeholder="Поиск по комментариям и категориям" aria-label="Поиск">
+    <div class="seg" id="wf" role="group" aria-label="Чьи траты"></div>
+  </div>
+  <div id="list"></div>
+  <div class="foot">
+    <span class="note" id="cnt"></span>
+    <button class="btn ghost" id="copy" type="button">Скопировать месяц как таблицу</button>
+  </div>
+</div></section>
+
+<div class="ov" id="ov" hidden><form class="dlg" id="sForm">
+  <h2>Настройки</h2>
+  <label class="fld">Первое имя<input id="sA" maxlength="24" required></label>
+  <label class="fld">Второе имя<input id="sB" maxlength="24" required></label>
+  <label class="fld">Валюта<select id="sCur"><option>₼</option><option>₽</option><option>$</option><option>€</option><option>₺</option><option>₸</option></select></label>
+  <label class="fld">Бюджет на месяц (0 — без бюджета)<input id="sBud" inputmode="decimal"></label>
+  <div style="display:flex;gap:10px;justify-content:flex-end"><button type="button" class="btn ghost" id="sCancel">Отмена</button><button class="btn">Сохранить</button></div>
+</form></div>
+<div class="toast" id="toast" hidden><span id="tMsg"></span><button id="tUndo" type="button">Вернуть</button></div>
+
+<script type="module">
+import {initializeApp} from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+import {getAuth,GoogleAuthProvider,signInWithPopup,signInWithRedirect,getRedirectResult,onAuthStateChanged,signOut} from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+import {initializeFirestore,persistentLocalCache,collection,doc,setDoc,deleteDoc,onSnapshot} from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+import {firebaseConfig} from './firebase-config.js';
+{
+const CATS=[['rent','Аренда','#e8584f'],['food','Продукты','#2f9e5b'],['transport','Транспорт','#7a5af0'],['cafe','Кафе и рестораны','#e0862e'],['health','Здоровье','#ff7aa2'],['sport','Спорт','#8bc34a'],['fun','Развлечения','#16a3a3'],['clothes','Одежда','#c9a227'],['home','Дом и коммуналка','#3d7bd9'],['subs','Подписки','#a78bfa'],['gifts','Подарки','#c04fd0'],['travel','Путешествия','#0e8ac2'],['other','Прочее','#8a7f83']];
+const CM=Object.fromEntries(CATS.map(c=>[c[0],c]));
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const pad=n=>String(n).padStart(2,'0');
+const today=()=>{const d=new Date();return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())};
+let S={a:'Дарья',b:'Муж',cur:'₼',budget:0};
+let E=[],month=today().slice(0,7),db=null,editing=null,lastDel=null,tTimer=0;
+let F={cat:'food',who:'a'},filt={q:'',who:'all'};
+const nm=w=>w==='a'?S.a:S.b;
+const fmt=n=>(Math.round(n*100)/100).toLocaleString('ru-RU',{maximumFractionDigits:2})+' '+S.cur;
+const mLabel=m=>new Date(m+'-01T12:00').toLocaleDateString('ru-RU',{month:'long',year:'numeric'});
+const dLabel=d=>new Date(d+'T12:00').toLocaleDateString('ru-RU',{weekday:'long',day:'numeric',month:'long'});
+const shift=(m,k)=>{let[y,mo]=m.split('-').map(Number);mo+=k;while(mo<1){mo+=12;y--}while(mo>12){mo-=12;y++}return y+'-'+pad(mo)};
+const isSettle=e=>e.cat==='settle';
+const app=initializeApp(firebaseConfig);const auth=getAuth(app);
+let fs;try{fs=initializeFirestore(app,{localCache:persistentLocalCache()})}catch(_){fs=initializeFirestore(app,{})}
+const ref=r=>({set:d=>setDoc(r,d),delete:()=>deleteDoc(r)});
+const FDB={collection:n=>({doc:id=>ref(id?doc(fs,n,id):doc(collection(fs,n)))}),doc:p=>ref(doc(fs,p))};
+
+function seg(el,opts,key,obj,cb){el.innerHTML=opts.map(([v,t])=>`<button type="button" data-v="${esc(v)}" aria-pressed="${obj[key]===v}">${esc(t)}</button>`).join('');el.onclick=e=>{const b=e.target.closest('button');if(!b)return;obj[key]=b.dataset.v;for(const x of el.children)x.setAttribute('aria-pressed',x===b);cb&&cb()}}
+function drawForm(){
+  $('fCats').innerHTML=CATS.map(([k,t,c])=>`<button type="button" class="chip" data-v="${k}" aria-pressed="${F.cat===k}"><span class="d" style="background:${c}"></span>${t}</button>`).join('');
+  seg($('fWho'),[['a','Платила: '+S.a],['b','Платил: '+S.b]],'who',F);
+  $('fCur').textContent=S.cur;
+}
+$('fCats').onclick=e=>{const b=e.target.closest('button');if(!b)return;F.cat=b.dataset.v;for(const x of $('fCats').children)x.setAttribute('aria-pressed',x===b)};
+
+function render(){
+  $('mname').textContent=mLabel(month);
+  $('ttl').textContent=S.a+' и '+S.b+': расходы';
+  const all=E.filter(e=>e.date&&e.date.startsWith(month));
+  const sp=all.filter(e=>!isSettle(e));
+  const tot=sp.reduce((s,e)=>s+e.amount,0);
+  $('total').textContent=fmt(tot);
+  const bud=+S.budget||0;$('budgetBox').hidden=!bud;
+  if(bud){const p=tot/bud*100;$('meterI').style.width=Math.min(100,p)+'%';$('meter').classList.toggle('over',p>100);
+    $('budL').textContent=Math.round(p)+'% бюджета';$('budR').textContent=tot>bud?'перерасход '+fmt(tot-bud):'осталось '+fmt(bud-tot)}
+  const pa=sp.filter(e=>e.who==='a').reduce((s,e)=>s+e.amount,0),pb=tot-pa;
+  $('spA').style.flexBasis=(tot?pa/tot*100:50)+'%';$('spB').style.flexBasis=(tot?pb/tot*100:50)+'%';
+  $('spA').textContent=tot?Math.round(pa/tot*100)+'%':'';$('spB').textContent=tot?Math.round(pb/tot*100)+'%':'';
+  $('lgA').textContent=S.a+' заплатила '+fmt(pa);$('lgB').textContent=S.b+' заплатил '+fmt(pb);
+  const byCat={};for(const e of sp)byCat[e.cat]=(byCat[e.cat]||0)+e.amount;
+  const cs=Object.entries(byCat).sort((x,y)=>y[1]-x[1]);const mx=cs[0]?.[1]||1;
+  $('cats').innerHTML=cs.length?cs.map(([k,v])=>{const c=CM[k]||CM.other;return`<div class="cat"><span>${c[1]}</span><span class="t"><i style="width:${v/mx*100}%;background:${c[2]}"></i></span><span>${esc(fmt(v))}</span></div>`}).join(''):'<div class="lbl">В этом месяце пока нет трат</div>';
+  const q=filt.q.trim().toLowerCase();
+  const shown=all.filter(e=>(filt.who==='all'||e.who===filt.who)&&(!q||(e.note||'').toLowerCase().includes(q)||(CM[e.cat]?.[1]||'Расчёт').toLowerCase().includes(q))).sort((x,y)=>y.date.localeCompare(x.date)||(y.ts||0)-(x.ts||0));
+  const days={};for(const e of shown)(days[e.date]=days[e.date]||[]).push(e);
+  $('list').innerHTML=shown.length?Object.entries(days).map(([d,items])=>`<div class="day"><h3><span>${esc(dLabel(d))}</span><span>${esc(fmt(items.filter(e=>!isSettle(e)).reduce((s,e)=>s+e.amount,0)))}</span></h3>${items.map(e=>{
+    const c=CM[e.cat]||CM.other;return`<div class="it"><span class="d" style="background:${c[2]}"></span><div><div class="n">${esc(e.note||c[1])}</div><div class="s">${e.note?c[1]+' · ':''}${esc(nm(e.who))}</div></div><div class="m">${esc(fmt(e.amount))}</div><div class="acts"><button data-ed="${esc(e.id)}" aria-label="Изменить">✎</button><button data-del="${esc(e.id)}" aria-label="Удалить">✕</button></div></div>`}).join('')}</div>`).join(''):`<div class="empty">${all.length?'Ничего не нашлось':'Добавьте первую трату — она сразу появится у вас обоих'}</div>`;
+  $('cnt').textContent=sp.length?`Записей за месяц: ${sp.length}`:'';
+}
+function status(t){$('status').textContent=t}
+function toast(msg,undo){$('tMsg').textContent=msg;$('tUndo').hidden=!undo;$('toast').hidden=false;clearTimeout(tTimer);tTimer=setTimeout(()=>{$('toast').hidden=true},6000)}
+
+function resetForm(){editing=null;$('fAmt').value='';$('fNote').value='';$('fDate').value=today();$('fTitle').textContent='Новая трата';$('fSave').textContent='Добавить';$('fCancel').hidden=true}
+$('form').onsubmit=async ev=>{ev.preventDefault();
+  const amount=Math.round(parseFloat($('fAmt').value.replace(/\s/g,'').replace(',','.'))*100)/100;
+  if(!(amount>0)){$('fAmt').focus();status('Введите сумму больше нуля');return}
+  const rec={amount,cat:F.cat,who:F.who,date:$('fDate').value||today(),note:$('fNote').value.trim(),ts:editing?.ts||Date.now()};
+  if(!db){status('Нет связи с общей базой — запись не сохранена');return}
+  $('fSave').disabled=true;
+  try{await (editing?db.collection('expenses').doc(editing.id):db.collection('expenses').doc()).set(rec);
+    toast(editing?'Изменено':'Добавлено: '+fmt(amount));if(rec.date.slice(0,7)!==month){month=rec.date.slice(0,7)}resetForm();$('fAmt').focus()}
+  catch(e){status(e?.code==='permission-denied'?'У этого аккаунта нет доступа к записи':'Не удалось сохранить, попробуйте ещё раз')}
+  finally{$('fSave').disabled=false;render()}};
+$('fCancel').onclick=()=>{resetForm()};
+$('list').onclick=async ev=>{const b=ev.target.closest('button');if(!b)return;
+  if(b.dataset.ed){const e=E.find(x=>x.id===b.dataset.ed);if(!e)return;editing=e;F={cat:e.cat,who:e.who};drawForm();
+    $('fAmt').value=String(e.amount).replace('.',',');$('fDate').value=e.date;$('fNote').value=e.note||'';$('fTitle').textContent='Изменить трату';$('fSave').textContent='Сохранить';$('fCancel').hidden=false;$('form').scrollIntoView({behavior:'smooth',block:'center'});$('fAmt').focus()}
+  if(b.dataset.del&&db){const e=E.find(x=>x.id===b.dataset.del);if(!e)return;
+    try{await db.collection('expenses').doc(e.id).delete();const{id,...rest}=e;lastDel={id,rest};toast('Удалено',true)}catch(_){toast('Не удалось удалить')}}};
+$('tUndo').onclick=async()=>{if(!lastDel||!db)return;const d=lastDel;lastDel=null;$('toast').hidden=true;try{await db.collection('expenses').doc(d.id).set(d.rest)}catch(_){toast('Не удалось вернуть')}};
+$('prev').onclick=()=>{month=shift(month,-1);render()};$('next').onclick=()=>{month=shift(month,1);render()};
+$('q').oninput=e=>{filt.q=e.target.value;render()};
+function drawWF(){seg($('wf'),[['all','Все'],['a',S.a],['b',S.b]],'who',filt,render)}
+$('gear').onclick=()=>{$('sA').value=S.a;$('sB').value=S.b;$('sCur').value=S.cur;$('sBud').value=S.budget||'';$('ov').hidden=false;$('sA').focus()};
+$('sCancel').onclick=()=>{$('ov').hidden=true};
+$('ov').onclick=e=>{if(e.target===$('ov'))$('ov').hidden=true};
+document.addEventListener('keydown',e=>{if(e.key==='Escape')$('ov').hidden=true});
+$('sForm').onsubmit=async ev=>{ev.preventDefault();
+  const n={a:$('sA').value.trim()||'Дарья',b:$('sB').value.trim()||'Муж',cur:$('sCur').value,budget:Math.max(0,parseFloat(($('sBud').value||'0').replace(',','.'))||0)};
+  $('ov').hidden=true;
+  if(JSON.stringify(n)===JSON.stringify(S))return;
+  S=n;drawForm();drawWF();render();
+  if(db)try{await db.doc('settings/main').set(n)}catch(_){toast('Настройки не сохранились')}};
+$('copy').onclick=async()=>{const rows=E.filter(e=>e.date?.startsWith(month)).sort((x,y)=>x.date.localeCompare(y.date)).map(e=>[e.date,isSettle(e)?'Расчёт':(CM[e.cat]||CM.other)[1],e.amount.toString().replace('.',','),nm(e.who),(e.note||'').replace(/\t|\n/g,' ')].join('\t'));
+  const txt=['Дата\tКатегория\tСумма\tКто платил\tКомментарий',...rows].join('\n');
+  try{await navigator.clipboard.writeText(txt);toast('Скопировано — вставьте в Excel или Google Таблицы')}catch(_){toast('Браузер не дал скопировать')}};
+
+resetForm();drawForm();drawWF();render();
+let unsubs=[];
+const stop=()=>{unsubs.forEach(u=>u());unsubs=[];db=null;E=[];render()};
+const deny=()=>{stop();$('gate').hidden=false;$('gIn').hidden=true;$('gOut').hidden=false;$('gMsg').textContent='Аккаунт '+(auth.currentUser?.email||'')+' не входит в список тех, у кого есть доступ к этим расходам.'};
+$('gIn').onclick=async()=>{const p=new GoogleAuthProvider();p.setCustomParameters({prompt:'select_account'});
+  try{await signInWithPopup(auth,p)}catch(e){if(['auth/popup-blocked','auth/operation-not-supported-in-environment','auth/cancelled-popup-request'].includes(e?.code))signInWithRedirect(auth,p);else if(e?.code!=='auth/popup-closed-by-user')$('gMsg').textContent='Не получилось войти: '+(e?.code||'ошибка')}};
+$('gOut').onclick=$('out').onclick=()=>signOut(auth);
+getRedirectResult(auth).catch(e=>{$('gMsg').textContent='Не получилось войти: '+(e?.code||'ошибка')});
+onAuthStateChanged(auth,u=>{
+  stop();
+  if(!u){$('gate').hidden=false;$('gIn').hidden=false;$('gOut').hidden=true;$('gMsg').textContent='Войдите, чтобы видеть и добавлять общие траты';return}
+  $('gate').hidden=true;$('uName').textContent=u.displayName||u.email||'';db=FDB;status('Загружаю данные…');
+  const fail=e=>{if(e?.code==='permission-denied')deny();else status('Связь с базой прервалась — обновите страницу позже')};
+  unsubs.push(onSnapshot(doc(fs,'settings/main'),s=>{if(s.exists()){const d=s.data();S={a:String(d.a||'Дарья'),b:String(d.b||'Муж'),cur:String(d.cur||'₼'),budget:+d.budget||0};drawForm();drawWF();render()}},fail));
+  unsubs.push(onSnapshot(collection(fs,'expenses'),{includeMetadataChanges:true},snap=>{
+    E=snap.docs.filter(d=>d.data()?.cat!=='settle').map(d=>{const x=d.data()||{};return{id:d.id,amount:+x.amount||0,cat:x.cat==='utilities'?'home':String(x.cat||'other'),who:x.who==='b'?'b':'a',date:/^\d{4}-\d{2}-\d{2}$/.test(x.date)?x.date:today(),note:String(x.note||''),ts:+x.ts||0}});
+    status(snap.metadata.fromCache?'Нет интернета — покажу, что есть; новые записи отправятся позже':'Всё сохраняется автоматически и видно вам обоим');
+    render()},fail));
+});
+}
+</script>
+</body>
+</html>
