@@ -178,7 +178,7 @@ const $=id=>document.getElementById(id);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const pad=n=>String(n).padStart(2,'0');
 const today=()=>{const d=new Date();return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())};
-let S={a:'Дарья',b:'Муж',cur:'₼',budget:0};
+let S={a:'Даша',b:'Руслан',cur:'₼',budget:0};
 let E=[],month=today().slice(0,7),db=null,editing=null,lastDel=null,tTimer=0;
 let F={cat:'food',who:'a'},filt={q:'',who:'all'};
 const nm=w=>w==='a'?S.a:S.b;
@@ -253,7 +253,7 @@ $('sCancel').onclick=()=>{$('ov').hidden=true};
 $('ov').onclick=e=>{if(e.target===$('ov'))$('ov').hidden=true};
 document.addEventListener('keydown',e=>{if(e.key==='Escape')$('ov').hidden=true});
 $('sForm').onsubmit=async ev=>{ev.preventDefault();
-  const n={a:$('sA').value.trim()||'Дарья',b:$('sB').value.trim()||'Муж',cur:$('sCur').value,budget:Math.max(0,parseFloat(($('sBud').value||'0').replace(',','.'))||0)};
+  const n={a:$('sA').value.trim()||'Даша',b:$('sB').value.trim()||'Руслан',cur:$('sCur').value,budget:Math.max(0,parseFloat(($('sBud').value||'0').replace(',','.'))||0)};
   $('ov').hidden=true;
   if(JSON.stringify(n)===JSON.stringify(S))return;
   S=n;drawForm();drawWF();render();
@@ -275,7 +275,7 @@ onAuthStateChanged(auth,u=>{
   if(!u){$('gate').hidden=false;$('gIn').hidden=false;$('gOut').hidden=true;$('gMsg').textContent='Войдите, чтобы видеть и добавлять общие траты';return}
   $('gate').hidden=true;$('uName').textContent=u.displayName||u.email||'';db=FDB;status('Загружаю данные…');
   const fail=e=>{if(e?.code==='permission-denied')deny();else status('Связь с базой прервалась — обновите страницу позже')};
-  unsubs.push(onSnapshot(doc(fs,'settings/main'),s=>{if(s.exists()){const d=s.data();S={a:String(d.a||'Дарья'),b:String(d.b||'Муж'),cur:String(d.cur||'₼'),budget:+d.budget||0};drawForm();drawWF();render()}},fail));
+  unsubs.push(onSnapshot(doc(fs,'settings/main'),s=>{if(s.exists()){const d=s.data();S={a:String(d.a||'Даша'),b:String(d.b||'Руслан'),cur:String(d.cur||'₼'),budget:+d.budget||0};drawForm();drawWF();render()}},fail));
   unsubs.push(onSnapshot(collection(fs,'expenses'),{includeMetadataChanges:true},snap=>{
     E=snap.docs.filter(d=>d.data()?.cat!=='settle').map(d=>{const x=d.data()||{};return{id:d.id,amount:+x.amount||0,cat:x.cat==='utilities'?'home':String(x.cat||'other'),who:x.who==='b'?'b':'a',date:/^\d{4}-\d{2}-\d{2}$/.test(x.date)?x.date:today(),note:String(x.note||''),ts:+x.ts||0}});
     status(snap.metadata.fromCache?'Нет интернета — покажу, что есть; новые записи отправятся позже':'Всё сохраняется автоматически и видно вам обоим');
